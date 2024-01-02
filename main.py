@@ -1,4 +1,7 @@
+import time
 import pygame
+from pygame.locals import *
+import random
 import sys
 
 pygame.init()
@@ -137,20 +140,79 @@ def main_func():
                     return (True, sp[i][0][j])
         return (False, '')
 
-    while running:
+    def show_text(text):
+        pygame.init()
+        screen = pygame.display.set_mode((800, 800))
+        pygame.display.set_caption("Text Window")
+        screen.fill(WHITE)
+        font = pygame.font.Font(None, 36)
+        text_surface = font.render(text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=(400, 400))
+
+        screen.fill((0, 0, 0))
+        screen.blit(text_surface, text_rect)
+        pygame.display.flip()
+
+        time.sleep(3)
+
+        pygame.QUIT
+
+    def show_dialog():
+        pygame.init()
+
+        screen_width = 800
+        screen_height = 800
+        screen = pygame.display.set_mode((screen_width, screen_height))
+        pygame.display.set_caption("Введите текст")
+
+        clock = pygame.time.Clock()
+        font = pygame.font.Font(None, 64)
+
+        text = ""
+        input_active = True
+
+        done = False
+        while not done:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    done = True
+                    pygame.quit()
+                elif event.type == KEYDOWN:
+                    if event.key == K_RETURN:
+                        return text
+                    elif event.key == K_BACKSPACE:
+                        if input_active:
+                            text = text[:-1]
+                    else:
+                        if input_active:
+                            text += event.unicode
+
+            screen.fill((255, 255, 255))
+
+            text_surf = font.render(text, True, (255, 0, 0))
+            screen.blit(text_surf, text_surf.get_rect(center=screen.get_rect().center))
+
+            pygame.display.flip()
+            clock.tick(30)
+
+        pygame.QUIT
+
+    first_player = show_dialog()
+    second_player = show_dialog()
+    starting_player = random.choice([first_player, second_player])
+    show_text('Первым начинает ' + starting_player)
+    pygame.init()
+    while True:
         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.QUIT
+                sys.exit()
             result = check_winner(board)
             end_flag, winner = result[0], result[1]
             if end_flag:
                 message = f"Player {winner} wins!"
-                print(message)
-                font = pygame.font.Font(None, 48)
-                text = font.render(message, True, WHITE)
-                text_rect = text.get_rect(center=(WIDTH / 2, HEIGHT / 2))
-                screen.blit(text, text_rect)
-                running = False
-            elif event.type == pygame.QUIT:
-                running = False
+                show_text(message)
+                pygame.QUIT
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if last_move == 'rotate':
@@ -194,7 +256,7 @@ def main_func():
                                     last_move = 'rotate'
                                     break
         draw_board()
-    pygame.quit()
+    pygame.QUIT
 
 
 if __name__ == '__main__':
