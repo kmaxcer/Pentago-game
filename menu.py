@@ -5,17 +5,25 @@ from pygame.locals import *
 window_width = 800
 window_height = 800
 background_color = (255, 255, 255)
+LIGHT_GREY = (200, 200, 200)
 pygame.init()
 
 
 # Функция для отображения главного меню
 def draw_menu(window):
+    global button_rect, button_rect_1
     # Очистите экран и установите цвет фона
     window.fill(background_color)
+    button_width, button_height = 134, 30
+    button_x, button_y = 333, 300
+    button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
+    button_width_1, button_height_1 = 547 - 258, 374 - 353
+    button_x_1, button_y_1 = 258, 353
+    button_rect_1 = pygame.Rect(button_x_1, button_y_1, button_width_1, button_height_1)
     font = pygame.font.Font(None, 36)
     title_text = font.render("Меню Пентаго", True, (0, 0, 0))
-    button1_text = font.render("1. Новая игра", True, (0, 0, 0))
-    button2_text = font.render("2. Просмотр прошлых игр", True, (0, 0, 0))
+    button1_text = font.render("Новая игра", True, (0, 0, 0))
+    button2_text = font.render("Просмотр прошлых игр", True, (0, 0, 0))
 
     # Отобразите текст на экране в нужных позициях
     window.blit(title_text, (window_width // 2 - title_text.get_width() // 2, 200))
@@ -34,7 +42,18 @@ def start_new_game():
     main.main_func()
 
 
+def is_text_clicked(text_rect):
+    mouse_pos = pygame.mouse.get_pos()
+    if text_rect.collidepoint(mouse_pos):
+        return True
+    return False
+
+
 # Функция для продолжения сохраненной игры
+def show_old_games():
+    import nonfinished_games_show
+    nonfinished_games_show.main_func()
+
 
 # Основной цикл программы
 def main():
@@ -57,6 +76,14 @@ def main():
                 if event.key == K_1:
                     # Нажата клавиша "1" - начать новую игру
                     start_new_game()
+                if event.key == K_2:
+                    show_old_games()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if button_rect.collidepoint(event.pos):
+                        start_new_game()
+                    if button_rect_1.collidepoint(event.pos):
+                        show_old_games()
 
     # Завершение программы
     pygame.quit()

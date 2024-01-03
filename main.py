@@ -196,7 +196,12 @@ def main_func():
 
             text_surf = font.render(text, True, (255, 0, 0))
             screen.blit(text_surf, text_surf.get_rect(center=screen.get_rect().center))
+            font = pygame.font.Font(None, 36)
+            text_render = 'Введите имя ' + str(num) + '-ого игрока'
+            text_surface = font.render(text_render, True, (0, 0, 0))
+            text_rect_render = text_surface.get_rect(center=(400, 250))
 
+            screen.blit(text_surface, text_rect_render)
             pygame.display.flip()
             clock.tick(30)
 
