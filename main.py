@@ -44,8 +44,11 @@ board = [[['', '', ''],
 current_player = 'X'
 
 
-def main_func():
-    global last_move, current_player
+def main_func(a=board, b=last_move, c=current_player, d=0):
+    board = a
+    last_move = b
+    current_player = c
+    from_db = d
 
     def draw_board():
         global clockwise_buttons, counter_clockwise_buttons
@@ -104,13 +107,11 @@ def main_func():
         pygame.display.flip()
 
     def rotate_clockwise(grid):
-        global board
         board[grid] = [list(row)[::-1] for row in zip(*board[grid])]
         board[grid] = [list(row)[::-1] for row in zip(*board[grid])]
         board[grid] = [list(row)[::-1] for row in zip(*board[grid])]
 
     def rotate_counter_clockwise(grid):
-        global board
         board[grid] = [list(row) for row in zip(*board[grid][::-1])]
 
     running = True
@@ -207,15 +208,24 @@ def main_func():
 
         pygame.QUIT
 
-    first_player = show_dialog(1)
-    second_player = show_dialog(2)
-    starting_player = random.choice([first_player, second_player])
-    show_text('Первым начинает ' + starting_player)
-    pygame.init()
-    result = cursor.execute("""SELECT * FROM games WHERE id > 0""").fetchall()
-    id = len(list(result)) + 1
-    print(id)
+    if not from_db:
+        first_player = show_dialog(1)
+        second_player = show_dialog(2)
+        starting_player = random.choice([first_player, second_player])
+        if starting_player != first_player:
+            first_player, second_player = second_player, first_player
+        show_text('Первым начинает ' + starting_player)
 
+        result = cursor.execute("""SELECT * FROM games WHERE id > 0""").fetchall()
+        id = len(list(result)) + 1
+    else:
+        result = list(cursor.execute(f"""SELECT id, player1, player2 FROM games WHERE id = {from_db}""").fetchall())
+        id, first_player, second_player = result[0][0], result[0][1], result[0][2]
+        cursor.execute(f"""DELETE FROM games WHERE id = {id}""")
+        print(id, first_player, second_player)
+
+    pygame.init()
+    print(current_player, last_move)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -227,24 +237,10 @@ def main_func():
                 for grid in range(4):
                     for row in range(3):
                         for col in range(3):
-                            print(grid, row, col)
-                            print(board)
                             if board[grid][row][col] == 'X':
-                                g, x, y = grid, row, col
-                                if g >= 2:
-                                    x += 3
-                                    grid -= 2
-                                if g == 1:
-                                    y += 3
-                                sp_X.append(str(x) + str(y))
+                                sp_X.append(str(grid) + str(row) + str(col))
                             elif board[grid][row][col] == 'O':
-                                x, y = row, col
-                                if g >= 2:
-                                    x += 3
-                                    g -= 2
-                                if g == 1:
-                                    y += 3
-                                sp_O.append(str(x) + str(y))
+                                sp_O.append(str(grid) + str(row) + str(col))
                 str_X = ','.join(sp_X)
                 str_O = ','.join(sp_O)
                 coords = str_X + ';' + str_O
@@ -260,15 +256,9 @@ def main_func():
             end_flag, winner = result[0], result[1]
             if end_flag:
                 if winner == 'X':
-                    if first_player == starting_player:
-                        winner = first_player
-                    else:
-                        winner = second_player
+                    winner = first_player
                 else:
-                    if first_player != starting_player:
-                        winner = first_player
-                    else:
-                        winner = second_player
+                    winner = second_player
                 data = (id, first_player, second_player, '', 1, winner)
                 data = str(data)
                 insert_query = "INSERT INTO games (id, player1, player2, coordinates, flag, result) VALUES " + data
