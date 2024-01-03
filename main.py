@@ -3,8 +3,11 @@ import pygame
 from pygame.locals import *
 import random
 import sys
+import sqlite3
 
 pygame.init()
+conn = sqlite3.connect('database.sqlite')
+cursor = conn.cursor()
 WIDTH = 800
 HEIGHT = 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -73,7 +76,8 @@ def main_func():
                         pygame.draw.circle(screen, BLACK, (x, y), 40)
                     else:
                         pygame.draw.circle(screen, DARK_RED, (x, y), 30)
-
+        pygame.draw.line(screen, WHITE, (400, 100), (400, 700), 5)
+        pygame.draw.line(screen, WHITE, (100, 400), (700, 400), 5)
         clockwise_buttons = []
 
         counter_clockwise_buttons = []
@@ -157,13 +161,13 @@ def main_func():
 
         pygame.QUIT
 
-    def show_dialog():
+    def show_dialog(num):
         pygame.init()
 
         screen_width = 800
         screen_height = 800
         screen = pygame.display.set_mode((screen_width, screen_height))
-        pygame.display.set_caption("Введите текст")
+        pygame.display.set_caption('Введите имя ' + str(num) + '-ого игрока')
 
         clock = pygame.time.Clock()
         font = pygame.font.Font(None, 64)
@@ -176,7 +180,8 @@ def main_func():
             for event in pygame.event.get():
                 if event.type == QUIT:
                     done = True
-                    pygame.quit()
+                    pygame.QUIT
+                    sys.exit()
                 elif event.type == KEYDOWN:
                     if event.key == K_RETURN:
                         return text
@@ -197,20 +202,75 @@ def main_func():
 
         pygame.QUIT
 
-    first_player = show_dialog()
-    second_player = show_dialog()
+    first_player = show_dialog(1)
+    second_player = show_dialog(2)
     starting_player = random.choice([first_player, second_player])
     show_text('Первым начинает ' + starting_player)
     pygame.init()
+    result = cursor.execute("""SELECT * FROM games WHERE id > 0""").fetchall()
+    id = len(list(result)) + 1
+    print(id)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                flag = 1
+                if last_move == 'rotate':
+                    flag = 0
+                sp_X = []
+                sp_O = []
+                for grid in range(4):
+                    for row in range(3):
+                        for col in range(3):
+                            print(grid, row, col)
+                            print(board)
+                            if board[grid][row][col] == 'X':
+                                g, x, y = grid, row, col
+                                if g >= 2:
+                                    x += 3
+                                    grid -= 2
+                                if g == 1:
+                                    y += 3
+                                sp_X.append(str(x) + str(y))
+                            elif board[grid][row][col] == 'O':
+                                x, y = row, col
+                                if g >= 2:
+                                    x += 3
+                                    g -= 2
+                                if g == 1:
+                                    y += 3
+                                sp_O.append(str(x) + str(y))
+                str_X = ','.join(sp_X)
+                str_O = ','.join(sp_O)
+                coords = str_X + ';' + str_O
+                data = (id, first_player, second_player, coords, flag, 'in_game')
+                data = str(data)
+                insert_query = "INSERT INTO games (id, player1, player2, coordinates, flag, result) VALUES " + data
+                cursor.execute(insert_query)
+                conn.commit()
+                cursor.close()
                 pygame.QUIT
                 sys.exit()
             result = check_winner(board)
             end_flag, winner = result[0], result[1]
             if end_flag:
-                message = f"Player {winner} wins!"
+                if winner == 'X':
+                    if first_player == starting_player:
+                        winner = first_player
+                    else:
+                        winner = second_player
+                else:
+                    if first_player != starting_player:
+                        winner = first_player
+                    else:
+                        winner = second_player
+                data = (id, first_player, second_player, '', 1, winner)
+                data = str(data)
+                insert_query = "INSERT INTO games (id, player1, player2, coordinates, flag, result) VALUES " + data
+                cursor.execute(insert_query)
+                conn.commit()
+                cursor.close()
+                message = f"Игрок {winner} победил!"
                 show_text(message)
                 pygame.QUIT
                 sys.exit()

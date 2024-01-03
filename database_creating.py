@@ -11,7 +11,7 @@ cursor.execute('''
         player2 TEXT,
         coordinates TEXT,
         flag INTEGER, 
-        result
+        result TEXT
     )
 ''')
 
