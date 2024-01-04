@@ -13,6 +13,52 @@ width, height = 800, 800
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Таблица игроков")
 
+conn = sqlite3.connect('database.sqlite')
+cursor = conn.cursor()
+
+# Получение данных из базы данных
+cursor.execute('SELECT player1, player2, result FROM games')
+games = cursor.fetchall()
+
+# Создание словаря для хранения результатов
+results = {}
+games_played = {}
+
+# Подсчет побед каждого игрока и подсчет общего количества игр
+for game in games:
+    player1, player2, result = game
+    if result != 'in_game':
+        if result == player1:
+            if player1 in results:
+                results[player1] += 1
+            else:
+                results[player1] = 1
+        elif result == player2:
+            if player2 in results:
+                results[player2] += 1
+            else:
+                results[player2] = 1
+
+        if player1 in games_played:
+            games_played[player1] += 1
+        else:
+            games_played[player1] = 1
+
+        if player2 in games_played:
+            games_played[player2] += 1
+        else:
+            games_played[player2] = 1
+
+# Сортировка результатов
+sorted_results = sorted(results.items(),
+                        key=lambda x: (-x[1], -x[1] / games_played[x[0]], -games_played[x[0]], x[0]))
+
+# Создание списка sp с данными об игроках
+for i, (player, wins) in enumerate(sorted_results, 1):
+    total_games = games_played[player]
+    win_percentage = (wins / total_games) * 100
+    sp.append((i, player, wins, total_games, str(round(win_percentage, 2)) + '%'))
+
 
 def main_func():
     global sp, roll_count
@@ -20,28 +66,12 @@ def main_func():
 
     # Создание функции для извлечения данных из базы данных
     def get_players(roll_count=0):
-        global cursor
-        # Подключение к базе данных
-        conn = sqlite3.connect("database.sqlite")
-        cursor = conn.cursor()
-
-        # Выполнение запроса к базе данных
-        cursor.execute("SELECT id, player1, player2, coordinates, flag FROM games WHERE result = 'in_game'")
-
-        # Получение результатов запроса
-        players = cursor.fetchall()
-        # Закрытие подключения к базе данных
-        cursor.close()
-        conn.close()
-
-        return players[roll_count:]
+        return sp[roll_count:]
 
     # Функция для отображения таблицы данных
     def display_table(players):
         # Определение размеров ячейки
-        column1_width = 100
-        column2_width = 350
-        column3_width = 350
+        column_width = 160
         cell_height = 100
         x_offset = 0
 
@@ -49,12 +79,12 @@ def main_func():
         screen.fill(WHITE)
 
         # Отрисовка заголовка таблицы
-        title = ["Номер", "Игрок 1", "Игрок 2"]
-        column_widths = [column1_width, column2_width, column3_width]
+        title = ["Место", "Имя", "Победы", "Игры", "Процент побед"]
+        column_widths = [160, 160, 160, 160, 160]
         for i in range(len(title)):
             pygame.draw.rect(screen, WHITE, (x_offset, 0, column_widths[i], cell_height), 1)
             pygame.draw.rect(screen, WHITE, (x_offset + 1, 1, column_widths[i] - 2, cell_height - 2))
-            font = pygame.font.Font(None, 40)
+            font = pygame.font.Font(None, 30)
             text = font.render(str(title[i]), True, (0, 0, 0))
             text_rect = text.get_rect(center=(x_offset + column_widths[i] // 2, cell_height // 2))
             screen.blit(text, text_rect)
@@ -66,7 +96,7 @@ def main_func():
             y_offset = (i + 1) * cell_height
             pygame.draw.rect(screen, GREY, (x_offset, y_offset, width, cell_height), 1)
 
-            for j, value in enumerate(player[:3]):
+            for j, value in enumerate(player[:5]):
                 pygame.draw.rect(screen, GREY, (x_offset, y_offset, column_widths[j], cell_height), 1)
                 pygame.draw.rect(screen, GREY, (x_offset + 1, y_offset + 1, column_widths[j] - 2, cell_height - 2))
                 font = pygame.font.Font(None, 60)
@@ -82,20 +112,17 @@ def main_func():
         global roll_count
         conn = sqlite3.connect("database.sqlite")
         cursor = conn.cursor()
-        res = list(cursor.execute("SELECT id, player1, player2, coordinates, flag FROM games WHERE result = 'in_game'"))
+        r1 = list(cursor.execute("SELECT id FROM games WHERE result = 'in_game'"))
+        r2 = list(cursor.execute("SELECT id FROM games WHERE id > 0"))
+        res = len(r2) - len(r1)
         cursor.close()
         conn.close()
-        count = len(res) - 7
-        if count - 1 - roll_count >= 0:
+        count = res - 7
+        if count - 1 - roll_count > 0:
             roll_count += 1
 
     def scroll_up():
         global roll_count
-        conn = sqlite3.connect("database.sqlite")
-        cursor = conn.cursor()
-        res = list(cursor.execute("SELECT id, player1, player2, coordinates, flag FROM games WHERE result = 'in_game'"))
-        cursor.close()
-        conn.close()
         if roll_count >= 1:
             roll_count -= 1
 
@@ -149,10 +176,7 @@ def main_func():
                 running = False
                 pygame.QUIT
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == pygame.BUTTON_LEFT:
-                    # Обработка нажатия мыши
-                    handle_mouse_click(pygame.mouse.get_pos(), get_players())
-                elif event.button == 4:
+                if event.button == 4:
                     scroll_up()
                 elif event.button == 5:
                     scroll_down()

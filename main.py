@@ -271,7 +271,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if last_move == 'rotate':
-                    last_move = 'cell'
                     pos = pygame.mouse.get_pos()
                     grid = 100
                     if 100 <= pos[0] <= 400 and 100 <= pos[1] <= 400:
@@ -297,6 +296,7 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                                 current_player = 'O'
                             else:
                                 current_player = 'X'
+                    last_move = 'cell'
                 else:
                     if last_move == 'cell':
                         for grid, clockwise_button in enumerate(clockwise_buttons):

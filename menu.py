@@ -11,7 +11,7 @@ pygame.init()
 
 # Функция для отображения главного меню
 def draw_menu(window):
-    global button_rect, button_rect_1
+    global button_rect, button_rect_1, button_rect_2
     # Очистите экран и установите цвет фона
     window.fill(background_color)
     button_width, button_height = 134, 30
@@ -20,15 +20,20 @@ def draw_menu(window):
     button_width_1, button_height_1 = 547 - 258, 374 - 353
     button_x_1, button_y_1 = 258, 353
     button_rect_1 = pygame.Rect(button_x_1, button_y_1, button_width_1, button_height_1)
+    button_width_2, button_height_2 = 467 - 334, 420 - 403
+    button_x_2, button_y_2 = 334, 403
+    button_rect_2 = pygame.Rect(button_x_2, button_y_2, button_width_2, button_height_2)
     font = pygame.font.Font(None, 36)
     title_text = font.render("Меню Пентаго", True, (0, 0, 0))
     button1_text = font.render("Новая игра", True, (0, 0, 0))
     button2_text = font.render("Просмотр прошлых игр", True, (0, 0, 0))
+    button3_text = font.render("Все игроки", True, (0, 0, 0))
 
     # Отобразите текст на экране в нужных позициях
     window.blit(title_text, (window_width // 2 - title_text.get_width() // 2, 200))
     window.blit(button1_text, (window_width // 2 - button1_text.get_width() // 2, 300))
     window.blit(button2_text, (window_width // 2 - button2_text.get_width() // 2, 350))
+    window.blit(button3_text, (window_width // 2 - button3_text.get_width() // 2, 400))
     # Добавьте код для отображения текста и кнопок меню
 
     # Обновите экран
@@ -55,6 +60,11 @@ def show_old_games():
     nonfinished_games_show.main_func()
 
 
+def show_leaders():
+    import show_leaders
+    show_leaders.main_func()
+
+
 # Основной цикл программы
 def main():
     pygame.init()
@@ -78,12 +88,16 @@ def main():
                     start_new_game()
                 if event.key == K_2:
                     show_old_games()
+                if event.key == K_3:
+                    show_leaders()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if button_rect.collidepoint(event.pos):
                         start_new_game()
                     if button_rect_1.collidepoint(event.pos):
                         show_old_games()
+                    if button_rect_2.collidepoint(event.pos):
+                        show_leaders()
 
     # Завершение программы
     pygame.quit()
