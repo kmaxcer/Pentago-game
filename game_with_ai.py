@@ -26,6 +26,8 @@ CELL_PADDING = 20
 last_move = 'rotate'
 button_size = 100
 button_radius = button_size // 2
+max_depth = 1
+count = 0
 board = [[['', '', ''],
           ['', '', ''],
           ['', '', '']],
@@ -44,6 +46,8 @@ ai_move = 'O'
 
 
 def main_func():
+    global max_depth, count
+
     def draw_board():
         global clockwise_buttons, counter_clockwise_buttons
         screen.fill(WHITE)
@@ -143,7 +147,7 @@ def main_func():
                     for col in range(3):
                         if field[grid][row][col] == '':
                             field[grid][row][col] = 'O'
-                            score = minimax(field, depth + 1, False, 2)
+                            score = minimax(field, depth + 1, False, max_depth)
                             field[grid][row][col] = ''
                             best_score = max(best_score, score)
         else:
@@ -160,12 +164,12 @@ def main_func():
                                         rotate_clockwise(field, quot)  #
                                     else:  #
                                         rotate_counter_clockwise(field, quot)  #
-                                    score = minimax(field, depth + 1, True, 2)
+                                    score = minimax(field, depth + 1, True, max_depth)
                                     best_score = min(best_score, score)
                             field[grid][row][col] = ''
         return best_score
 
-    def get_computer_position(board):
+    def get_computer_position(board, max_depth):
         field = copy.deepcopy(board)
         best_score = -sys.maxsize
         move = None
@@ -181,7 +185,7 @@ def main_func():
                                     rotate_clockwise(field, quot)  #
                                 else:  #
                                     rotate_counter_clockwise(field, quot)  #
-                                score = minimax(field, 0, False, 2)
+                                score = minimax(field, 0, False, max_depth)
                                 if score >= best_score:
                                     best_score = score
                                     move = (grid, row, col, quot, direct)
@@ -270,17 +274,22 @@ def main_func():
                         if clockwise_button.collidepoint(event.pos):
                             rotate_clockwise(board, grid)
                             rotate_flag = True
+                            count += 1
                             break
                     else:
                         for grid, counter_clockwise_button in enumerate(counter_clockwise_buttons):
                             if counter_clockwise_button.collidepoint(event.pos):
                                 rotate_counter_clockwise(board, grid)
                                 rotate_flag = True
+                                count += 1
                                 break
 
                 draw_board()
+                if count == 4:
+                    count = 0
+                    max_depth += 1
                 if rotate_flag and cell_flag:
-                    a = get_computer_position(board)
+                    a = get_computer_position(board, max_depth)
                     grid, row, col, quot, direct = a[0], a[1], a[2], int(a[3]), a[4]
                     board[int(grid)][int(row)][int(col)] = 'O'
                     if direct == 0:  #
