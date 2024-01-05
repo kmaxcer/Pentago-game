@@ -31,6 +31,8 @@ button_radius = button_size // 2
 max_depth = 1
 count = 0
 arrow_img = pygame.image.load("arrow.png")
+background_image = pygame.image.load("ai_background.png")
+background_image = pygame.transform.scale(background_image, (800, 800))
 board = [[['', '', ''],
           ['', '', ''],
           ['', '', '']],
@@ -63,7 +65,7 @@ def main_func():
 
     def draw_board():
         global clockwise_buttons, counter_clockwise_buttons
-        screen.fill(WHITE)
+        screen.blit(background_image, (0, 0))
         # Отрисовка поля
         pygame.draw.rect(screen, field_color, ((100, 100), (600, 600)))
 

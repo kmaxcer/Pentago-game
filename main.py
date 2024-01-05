@@ -1,3 +1,4 @@
+import copy
 import time
 import pygame
 from pygame.locals import *
@@ -15,6 +16,8 @@ pygame.display.set_caption("Пентаго")
 screen.fill((255, 255, 255))
 end_flag = False
 cell_flag, rotate_flag = True, False
+clockwise_buttons = []
+counter_clockwise_buttons = []
 winner = ''
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -28,10 +31,33 @@ GRID_PADDING = 10
 CELL_PADDING = 20
 last_move = 'rotate'
 button_size = 100
+button_positions = [
+    (50, 150),
+    (150, 50),
+    (650, 50),
+    (750, 150),
+    (50, 650),
+    (150, 750),
+    (650, 750),
+    (750, 650)
+]
+button_radius = button_size // 2
+for i in range(8):
+    position = button_positions[i]
+    if i >= 4:
+        i += 1
+    if i % 2 == 0:
+        clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
+        clockwise_buttons.append(clockwise_button)
+    else:
+        counter_clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
+        counter_clockwise_buttons.append(counter_clockwise_button)
+    i -= 1
 arrow_img = pygame.image.load("arrow.png")
 black_sphere = pygame.image.load("sphere-black.png")
 white_sphere = pygame.image.load("sphere-white.png")
-button_radius = button_size // 2
+background_image = pygame.image.load("2players_game.png")
+background_image = pygame.transform.scale(background_image, (800, 800))
 board = [[['', '', ''],
           ['', '', ''],
           ['', '', '']],
@@ -48,6 +74,7 @@ current_player = 'X'
 
 
 def main_func(a=board, b=last_move, c=current_player, d=0):
+    global clockwise_buttons, counter_clockwise_buttons
     board = a
     last_move = b
     current_player = c
@@ -66,9 +93,9 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
     def draw_board():
         global clockwise_buttons, counter_clockwise_buttons
         screen.fill(WHITE)
+        screen.blit(background_image, (0, 0))
         # Отрисовка поля
         pygame.draw.rect(screen, field_color, ((100, 100), (600, 600)))
-
         # Размер и радиус кнопок
         button_size = 100
         button_radius = button_size // 2
@@ -92,34 +119,13 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                         screen.blit(black_sphere, (x - 42, y - 42))
                     else:
                         pygame.draw.circle(screen, DARK_RED, (x, y), 30)
+        for el in clockwise_buttons:
+            pygame.draw.circle(screen, button_color, el.center, button_radius)
+        for el in counter_clockwise_buttons:
+            pygame.draw.circle(screen, button_color, el.center, button_radius)
         pygame.draw.line(screen, WHITE, (398, 100), (398, 700), 5)
         pygame.draw.line(screen, WHITE, (100, 398), (700, 398), 5)
-        clockwise_buttons = []
-
-        counter_clockwise_buttons = []
-
-        button_positions = [
-            (50, 150),
-            (150, 50),
-            (650, 50),
-            (750, 150),
-            (50, 650),
-            (150, 750),
-            (650, 750),
-            (750, 650)
-        ]
         # Отрисовка кнопок
-        for i in range(8):
-            position = button_positions[i]
-            if i >= 4:
-                i += 1
-            if i % 2 == 0:
-                clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
-                clockwise_buttons.append(clockwise_button)
-            else:
-                counter_clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
-                counter_clockwise_buttons.append(counter_clockwise_button)
-            i -= 1
         screen.blit(arrow_img, (100, 0))
         screen.blit(mirror_image(rotate_image(arrow_img, 90), 1), (0, 100))
         screen.blit(mirror_image(rotate_image(arrow_img, 180), 1), (600, 0))
@@ -322,7 +328,7 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                                 current_player = 'O'
                             else:
                                 current_player = 'X'
-                    last_move = 'cell'
+                            last_move = 'cell'
                 else:
                     if last_move == 'cell':
                         for grid, clockwise_button in enumerate(clockwise_buttons):
