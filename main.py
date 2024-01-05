@@ -265,6 +265,8 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                 cursor.execute(insert_query)
                 conn.commit()
                 cursor.close()
+                draw_board()
+                time.sleep(3)
                 message = f"Игрок {winner} победил!"
                 show_text(message)
                 pygame.QUIT

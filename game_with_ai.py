@@ -1,7 +1,7 @@
 import copy
 import sys
 import time
-
+import random
 import pygame
 
 pygame.init()
@@ -133,11 +133,82 @@ def main_func():
                     return (True, sp[i][0][j])
         return (False, '')
 
-    def minimax(field, depth, flag, max_depth):
+    def find_four(board):
+        sp = [board[0][0] + board[1][0]], [board[0][1] + board[1][1]], [board[0][2] + board[1][2]], [
+            board[2][0] + board[3][0]], [board[2][1] + board[3][1]], [board[2][2] + board[3][2]]
+        for i in range(3):
+            for j in range(3):
+                if sp[i][0][j] == sp[i + 1][0][j + 1] == sp[i + 2][0][j + 2] == sp[i + 3][0][j + 3] and sp[i][0][
+                    j] != '':
+                    return (True, sp[i][0][j])
+        # Проверка добавочной диагонали
+        for i in range(3):
+            for j in range(3):
+                if sp[i][0][j + 3] == sp[i + 1][0][j + 2] == sp[i + 2][0][j + 1] == sp[i + 3][0][j] and sp[i][0][
+                    j + 3] != '':
+                    return (True, sp[i][0][j + 3])
+        # Проверка горизонталей
+        for i in range(6):
+            for j in range(3):
+                if sp[i][0][j] == sp[i][0][j + 1] == sp[i][0][j + 2] == sp[i][0][j + 3] and sp[i][0][j] != '':
+                    return (True, sp[i][0][j])
+        # Проверка вертикалей
+        for i in range(3):
+            for j in range(6):
+                if sp[i][0][j] == sp[i + 1][0][j] == sp[i + 2][0][j] == sp[i + 3][0][j] and sp[i][0][j] != '':
+                    return (True, sp[i][0][j])
+        return (False, '')
+
+    def find_triple_in_grid(board):
+        count = 0
+        for i in range(4):
+            grid = board[i]
+            for row in range(3):
+                if grid[row][0] == grid[row][1] == grid[row][2] != '':
+                    if grid[row][0] == 'O':
+                        count += 10
+                    else:
+                        count -= 10
+                if grid[0][row] == grid[1][row] == grid[2][row] != '':
+                    if grid[0][row] == 'O':
+                        count += 10
+                    else:
+                        count -= 10
+                if grid[0][0] == grid[1][1] == grid[2][2] != '':
+                    if grid[0][0] == 'O':
+                        count += 5
+                    else:
+                        count -= 5
+                if grid[0][2] == grid[1][1] == grid[2][0] != '':
+                    if grid[0][2] == 'O':
+                        count += 5
+                    else:
+                        count -= 5
+        return count
+
+    def check_centers(board):
+        count = 0
+        flag = False
+        for grid in range(4):
+            if board[grid][1][1] == '':
+                flag = True
+            if board[grid][1][1] == 'O':
+                count += 10
+            if board[grid][1][1] == 'X':
+                count -= 10
+        if flag:
+            return count
+        return 0
+
+    def minimax(field, depth, flag, max_depth, alpha=-sys.maxsize, beta=sys.maxsize):
         if check_win(field) == (True, 'O'):
             return 100
         if check_win(field) == (True, 'X'):
             return -100
+        if check_centers(field) != 0:
+            return check_centers(field)
+        if find_triple_in_grid(field) != 0:
+            return find_triple_in_grid(field)
         if depth >= max_depth:
             return 0
         if flag:
@@ -147,9 +218,13 @@ def main_func():
                     for col in range(3):
                         if field[grid][row][col] == '':
                             field[grid][row][col] = 'O'
-                            score = minimax(field, depth + 1, False, max_depth)
+                            score = minimax(field, depth + 1, False, 2)
                             field[grid][row][col] = ''
                             best_score = max(best_score, score)
+                            alpha = max(alpha, best_score)
+                            if beta <= alpha:
+                                return best_score
+            return best_score
         else:
             best_score = sys.maxsize
             for grid in range(4):
@@ -164,15 +239,19 @@ def main_func():
                                         rotate_clockwise(field, quot)  #
                                     else:  #
                                         rotate_counter_clockwise(field, quot)  #
-                                    score = minimax(field, depth + 1, True, max_depth)
+                                    score = minimax(field, depth + 1, True, 2)
                                     best_score = min(best_score, score)
+                                    beta = min(beta, best_score)
+                                    if beta <= alpha:
+                                        return best_score
                             field[grid][row][col] = ''
-        return best_score
+            return best_score
 
-    def get_computer_position(board, max_depth):
+    def get_computer_position(board):
         field = copy.deepcopy(board)
         best_score = -sys.maxsize
         move = None
+        sp_of_moves = []
         for grid in range(4):
             for row in range(3):
                 for col in range(3):
@@ -185,14 +264,16 @@ def main_func():
                                     rotate_clockwise(field, quot)  #
                                 else:  #
                                     rotate_counter_clockwise(field, quot)  #
-                                score = minimax(field, 0, False, max_depth)
-                                if score >= best_score:
+                                score = minimax(field, 0, False, 2)
+                                if score > best_score:
                                     best_score = score
                                     move = (grid, row, col, quot, direct)
+                                    sp_of_moves = [move]
+                                if score == best_score:
+                                    sp_of_moves.append(move)
                                 field = copy.deepcopy(field_copy)  #
                         field[grid][row][col] = ''
-                    print(4 - grid, 3 - row, 3 - col)
-        return move
+        return sp_of_moves
 
     scores = {'X': -100,
               '0': 100}
@@ -242,6 +323,8 @@ def main_func():
                 else:
                     winner = 'Компьютер'
                 message = f"Игрок {winner} победил!"
+                draw_board()
+                time.sleep(3)
                 show_text(message)
                 pygame.QUIT
                 sys.exit()
@@ -283,15 +366,30 @@ def main_func():
                                 rotate_flag = True
                                 count += 1
                                 break
-
+                result = check_win(board)
+                end_flag, winner = result[0], result[1]
+                if end_flag:
+                    if winner == 'X':
+                        winner = 'Человек'
+                    else:
+                        winner = 'Компьютер'
+                    message = f"Игрок {winner} победил!"
+                    draw_board()
+                    time.sleep(3)
+                    show_text(message)
+                    pygame.QUIT
+                    sys.exit()
                 draw_board()
-                if count == 4:
-                    count = 0
+                if count == 5:
+                    max_depth += 1
+                elif count == 10:
                     max_depth += 1
                 if rotate_flag and cell_flag:
-                    a = get_computer_position(board, max_depth)
+                    a = random.choice(get_computer_position(board))
                     grid, row, col, quot, direct = a[0], a[1], a[2], int(a[3]), a[4]
                     board[int(grid)][int(row)][int(col)] = 'O'
+                    draw_board()
+                    time.sleep(1.5)
                     if direct == 0:  #
                         rotate_clockwise(board, quot)  #
                     else:  #
