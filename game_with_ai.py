@@ -13,6 +13,8 @@ screen.fill((255, 255, 255))
 end_flag = False
 cell_flag, rotate_flag = True, False
 winner = ''
+black_sphere = pygame.image.load("sphere-black.png")
+white_sphere = pygame.image.load("sphere-white.png")
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 DARK_RED = (100, 0, 0)
@@ -28,6 +30,7 @@ button_size = 100
 button_radius = button_size // 2
 max_depth = 1
 count = 0
+arrow_img = pygame.image.load("arrow.png")
 board = [[['', '', ''],
           ['', '', ''],
           ['', '', '']],
@@ -47,6 +50,16 @@ ai_move = 'O'
 
 def main_func():
     global max_depth, count
+
+    def mirror_image(image, mirror_axis):
+        # Отражение картинки по заданной оси (остановка = 0, вертикальная = 1, горизонтальная = 2)
+        mirrored_image = pygame.transform.flip(image, False, mirror_axis)
+        return mirrored_image
+
+    def rotate_image(image, angle):
+        # Поворот картинки на заданный угол (в градусах)
+        rotated_image = pygame.transform.rotate(image, angle)
+        return rotated_image
 
     def draw_board():
         global clockwise_buttons, counter_clockwise_buttons
@@ -72,13 +85,13 @@ def main_func():
                     x += col * 100
                     y += row * 100
                     if board[grid][row][col] == 'X':
-                        pygame.draw.circle(screen, WHITE, (x, y), 40)
+                        screen.blit(white_sphere, (x - 42, y - 42))
                     elif board[grid][row][col] == 'O':
-                        pygame.draw.circle(screen, BLACK, (x, y), 40)
+                        screen.blit(black_sphere, (x - 42, y - 42))
                     else:
                         pygame.draw.circle(screen, DARK_RED, (x, y), 30)
-        pygame.draw.line(screen, WHITE, (400, 100), (400, 700), 5)
-        pygame.draw.line(screen, WHITE, (100, 400), (700, 400), 5)
+        pygame.draw.line(screen, WHITE, (398, 100), (398, 700), 5)
+        pygame.draw.line(screen, WHITE, (100, 398), (700, 398), 5)
         clockwise_buttons = []
 
         counter_clockwise_buttons = []
@@ -96,12 +109,23 @@ def main_func():
         # Отрисовка кнопок
         for i in range(8):
             position = button_positions[i]
+            if i >= 4:
+                i += 1
             if i % 2 == 0:
                 clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
                 clockwise_buttons.append(clockwise_button)
             else:
                 counter_clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
                 counter_clockwise_buttons.append(counter_clockwise_button)
+            i -= 1
+        screen.blit(arrow_img, (100, 0))
+        screen.blit(mirror_image(rotate_image(arrow_img, 90), 1), (0, 100))
+        screen.blit(mirror_image(rotate_image(arrow_img, 180), 1), (600, 0))
+        screen.blit(rotate_image(arrow_img, 270), (700, 100))
+        screen.blit(rotate_image(arrow_img, 90), (0, 600))
+        screen.blit(mirror_image(arrow_img, 1), (100, 700))
+        screen.blit(rotate_image(arrow_img, 180), (600, 700))
+        screen.blit(rotate_image(mirror_image(arrow_img, 1), 90), (700, 600))
         pygame.display.flip()
 
     def check_win(board):
@@ -283,7 +307,7 @@ def main_func():
         screen = pygame.display.set_mode((800, 800))
         pygame.display.set_caption("Text Window")
         screen.fill(WHITE)
-        font = pygame.font.Font(None, 36)
+        font = pygame.font.Font("Robotocondensed Regular.ttf", 36)
         text_surface = font.render(text, True, (255, 255, 255))
         text_rect = text_surface.get_rect(center=(400, 400))
 

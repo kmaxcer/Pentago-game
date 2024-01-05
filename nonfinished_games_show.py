@@ -51,14 +51,19 @@ def main_func():
         # Отрисовка заголовка таблицы
         title = ["Номер", "Игрок 1", "Игрок 2"]
         column_widths = [column1_width, column2_width, column3_width]
-        for i in range(len(title)):
+        for i in range(1, len(title)):
             pygame.draw.rect(screen, WHITE, (x_offset, 0, column_widths[i], cell_height), 1)
             pygame.draw.rect(screen, WHITE, (x_offset + 1, 1, column_widths[i] - 2, cell_height - 2))
-            font = pygame.font.Font(None, 40)
+            font = pygame.font.Font("Robotocondensed Regular.ttf", 40)
             text = font.render(str(title[i]), True, (0, 0, 0))
-            text_rect = text.get_rect(center=(x_offset + column_widths[i] // 2, cell_height // 2))
+            text_rect = text.get_rect(center=(x_offset + column_widths[i] // 2 + 120, cell_height // 2))
             screen.blit(text, text_rect)
             x_offset += column_widths[i]
+
+        font = pygame.font.Font("Robotocondensed Regular.ttf", 40)
+        text = font.render("Номер", True, (0, 0, 0))
+        text_rect = text.get_rect(center=(70, cell_height // 2))
+        screen.blit(text, text_rect)
 
         # Отрисовка данных таблицы
         for i, player in enumerate(players):
@@ -69,9 +74,9 @@ def main_func():
             for j, value in enumerate(player[:3]):
                 pygame.draw.rect(screen, GREY, (x_offset, y_offset, column_widths[j], cell_height), 1)
                 pygame.draw.rect(screen, GREY, (x_offset + 1, y_offset + 1, column_widths[j] - 2, cell_height - 2))
-                font = pygame.font.Font(None, 60)
+                font = pygame.font.Font("Robotocondensed Regular.ttf", 60)
                 text = font.render(str(value), True, (0, 0, 0))
-                text_rect = text.get_rect(center=(x_offset + column_widths[j] // 2, y_offset + cell_height // 2))
+                text_rect = text.get_rect(center=(x_offset + column_widths[j] // 2 + 20, y_offset + cell_height // 2))
                 screen.blit(text, text_rect)
                 x_offset += column_widths[j]
 

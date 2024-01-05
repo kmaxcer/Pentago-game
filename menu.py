@@ -1,11 +1,12 @@
 import pygame
-import sys
 from pygame.locals import *
 
 window_width = 800
 window_height = 800
 background_color = (255, 255, 255)
 LIGHT_GREY = (200, 200, 200)
+background_image = pygame.image.load("background.png")
+background_image = pygame.transform.scale(background_image, (800, 800))
 pygame.init()
 
 
@@ -14,31 +15,34 @@ def draw_menu(window):
     global button_rect, button_rect_1, button_rect_2, button_rect_3
     # Очистите экран и установите цвет фона
     window.fill(background_color)
-    button_width, button_height = 134, 30
-    button_x, button_y = 333, 300
+    button_width, button_height = 531 - 266, 172 - 151
+    button_x, button_y = 266, 150
     button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
-    button_width_1, button_height_1 = 547 - 258, 374 - 353
-    button_x_1, button_y_1 = 258, 353
+    button_width_1, button_height_1 = 665 - 131, 226 - 201
+    button_x_1, button_y_1 = 131, 200
     button_rect_1 = pygame.Rect(button_x_1, button_y_1, button_width_1, button_height_1)
-    button_width_2, button_height_2 = 467 - 334, 420 - 403
-    button_x_2, button_y_2 = 334, 403
+    button_width_2, button_height_2 = 531 - 265, 274 - 251
+    button_x_2, button_y_2 = 265, 250
     button_rect_2 = pygame.Rect(button_x_2, button_y_2, button_width_2, button_height_2)
-    button_width_3, button_height_3 = 516 - 290, 469 - 452
-    button_x_3, button_y_3 = 290, 452
+    button_width_3, button_height_3 = 639 - 185, 321 - 301
+    button_x_3, button_y_3 = 185, 300
     button_rect_3 = pygame.Rect(button_x_3, button_y_3, button_width_3, button_height_3)
-    font = pygame.font.Font(None, 36)
-    title_text = font.render("Меню Пентаго", True, (0, 0, 0))
+    font = pygame.font.Font("Pressstart2p.ttf", 40)
+    title_text = font.render("Меню", True, (0, 0, 0))
+    font = pygame.font.Font("Pressstart2p.ttf", 27)
     button1_text = font.render("Новая игра", True, (0, 0, 0))
     button2_text = font.render("Просмотр прошлых игр", True, (0, 0, 0))
     button3_text = font.render("Все игроки", True, (0, 0, 0))
     button4_text = font.render("Игра с компьтером", True, (0, 0, 0))
 
     # Отобразите текст на экране в нужных позициях
-    window.blit(title_text, (window_width // 2 - title_text.get_width() // 2, 200))
-    window.blit(button1_text, (window_width // 2 - button1_text.get_width() // 2, 300))
-    window.blit(button2_text, (window_width // 2 - button2_text.get_width() // 2, 350))
-    window.blit(button3_text, (window_width // 2 - button3_text.get_width() // 2, 400))
-    window.blit(button4_text, (290, 450))
+
+    window.blit(background_image, (0, 0))
+    window.blit(title_text, (window_width // 2 - title_text.get_width() // 2, 50))
+    window.blit(button1_text, (window_width // 2 - button1_text.get_width() // 2, 150))
+    window.blit(button2_text, (window_width // 2 - button2_text.get_width() // 2, 200))
+    window.blit(button3_text, (window_width // 2 - button3_text.get_width() // 2, 250))
+    window.blit(button4_text, (185, 300))
     # Добавьте код для отображения текста и кнопок меню
 
     # Обновите экран

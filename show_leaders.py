@@ -84,9 +84,9 @@ def main_func():
         for i in range(len(title)):
             pygame.draw.rect(screen, WHITE, (x_offset, 0, column_widths[i], cell_height), 1)
             pygame.draw.rect(screen, WHITE, (x_offset + 1, 1, column_widths[i] - 2, cell_height - 2))
-            font = pygame.font.Font(None, 30)
+            font = pygame.font.Font("Robotocondensed Regular.ttf", 28)
             text = font.render(str(title[i]), True, (0, 0, 0))
-            text_rect = text.get_rect(center=(x_offset + column_widths[i] // 2, cell_height // 2))
+            text_rect = text.get_rect(center=(x_offset + column_widths[i] // 2 - 10, cell_height // 2))
             screen.blit(text, text_rect)
             x_offset += column_widths[i]
 
@@ -99,9 +99,9 @@ def main_func():
             for j, value in enumerate(player[:5]):
                 pygame.draw.rect(screen, GREY, (x_offset, y_offset, column_widths[j], cell_height), 1)
                 pygame.draw.rect(screen, GREY, (x_offset + 1, y_offset + 1, column_widths[j] - 2, cell_height - 2))
-                font = pygame.font.Font(None, 60)
+                font = pygame.font.Font("Robotocondensed Regular.ttf", 60)
                 text = font.render(str(value), True, (0, 0, 0))
-                text_rect = text.get_rect(center=(x_offset + column_widths[j] // 2, y_offset + cell_height // 2))
+                text_rect = text.get_rect(center=(x_offset + column_widths[j] // 2 - 10, y_offset + cell_height // 2))
                 screen.blit(text, text_rect)
                 x_offset += column_widths[j]
 
@@ -118,7 +118,7 @@ def main_func():
         cursor.close()
         conn.close()
         count = res - 7
-        if count - 1 - roll_count > 0:
+        if count - 1 - roll_count > 1:
             roll_count += 1
 
     def scroll_up():
