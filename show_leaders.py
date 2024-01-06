@@ -86,7 +86,10 @@ def main_func():
             pygame.draw.rect(screen, WHITE, (x_offset + 1, 1, column_widths[i] - 2, cell_height - 2))
             font = pygame.font.Font("Robotocondensed Regular.ttf", 28)
             text = font.render(str(title[i]), True, (0, 0, 0))
-            text_rect = text.get_rect(center=(x_offset + column_widths[i] // 2 - 10, cell_height // 2))
+            const = 10
+            if str(title[i]) == "Игры":
+                const = 30
+            text_rect = text.get_rect(center=(x_offset + column_widths[i] // 2 - const, cell_height // 2))
             screen.blit(text, text_rect)
             x_offset += column_widths[i]
 
@@ -101,10 +104,19 @@ def main_func():
                 pygame.draw.rect(screen, GREY, (x_offset + 1, y_offset + 1, column_widths[j] - 2, cell_height - 2))
                 font = pygame.font.Font("Robotocondensed Regular.ttf", 60)
                 text = font.render(str(value), True, (0, 0, 0))
-                text_rect = text.get_rect(center=(x_offset + column_widths[j] // 2 - 10, y_offset + cell_height // 2))
+                const = 10
+                if j == 3:
+                    const = 30
+                text_rect = text.get_rect(
+                    center=(x_offset + column_widths[j] // 2 - const, y_offset + cell_height // 2))
                 screen.blit(text, text_rect)
                 x_offset += column_widths[j]
-
+        pygame.draw.line(screen, WHITE, (130, 0), (130, 800), 3)
+        pygame.draw.line(screen, WHITE, (330, 0), (330, 800), 3)
+        pygame.draw.line(screen, WHITE, (470, 0), (470, 800), 3)
+        pygame.draw.line(screen, WHITE, (600, 0), (600, 800), 3)
+        for i in range(6):
+            pygame.draw.line(screen, WHITE, (0, 200 + i * 100), (800, 200 + i * 100), 3)
         # Обновление экрана
         pygame.display.flip()
 
@@ -117,8 +129,7 @@ def main_func():
         res = len(r2) - len(r1)
         cursor.close()
         conn.close()
-        count = res - 7
-        if count - 1 - roll_count > 1:
+        if len(results) - 7 > roll_count:
             roll_count += 1
 
     def scroll_up():

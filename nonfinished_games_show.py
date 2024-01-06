@@ -36,6 +36,23 @@ def main_func():
 
         return players[roll_count:]
 
+    def get_all_players():
+        global cursor
+        # Подключение к базе данных
+        conn = sqlite3.connect("database.sqlite")
+        cursor = conn.cursor()
+
+        # Выполнение запроса к базе данных
+        cursor.execute("SELECT id, player1, player2, coordinates, flag FROM games WHERE result = 'in_game'")
+
+        # Получение результатов запроса
+        playerss = cursor.fetchall()
+        # Закрытие подключения к базе данных
+        cursor.close()
+        conn.close()
+        print(playerss)
+        return playerss
+
     # Функция для отображения таблицы данных
     def display_table(players):
         # Определение размеров ячейки
@@ -79,6 +96,10 @@ def main_func():
                 text_rect = text.get_rect(center=(x_offset + column_widths[j] // 2 + 20, y_offset + cell_height // 2))
                 screen.blit(text, text_rect)
                 x_offset += column_widths[j]
+        pygame.draw.line(screen, WHITE, (160, 0), (160, 800), 3)
+        pygame.draw.line(screen, WHITE, (480, 0), (480, 800), 3)
+        for i in range(6):
+            pygame.draw.line(screen, WHITE, (0, 200 + i * 100), (800, 200 + i * 100), 3)
 
         # Обновление экрана
         pygame.display.flip()
@@ -105,12 +126,13 @@ def main_func():
             roll_count -= 1
 
     # Функция для обработки нажатий мыши
-    def handle_mouse_click(click_pos, players):
+    def handle_mouse_click(click_pos):
         cell_height = 100
 
-        for i, player in enumerate(players):
-            y_offset = (i + 1) * cell_height
+        for i, player in enumerate(get_all_players()):
+            y_offset = (i + 1 - roll_count) * cell_height
             if y_offset <= click_pos[1] <= y_offset + cell_height:
+                print(player)
                 # Запись значения coordinates в список sp
                 coords = [player[3], player[4]]
                 sp_X = coords[0].split(';')[0].split(',')
@@ -127,14 +149,18 @@ def main_func():
                          [['', '', ''],
                           ['', '', ''],
                           ['', '', '']]]
-                for el in sp_X:
-                    el = list(map(int, list(el)))
-                    x, y, z = el[0], el[1], el[2]
-                    board[x][y][z] = 'X'
-                for el in sp_O:
-                    el = list(map(int, list(el)))
-                    x, y, z = el[0], el[1], el[2]
-                    board[x][y][z] = 'O'
+                if sp_X != []:
+                    for el in sp_X:
+                        el = list(map(int, list(el)))
+                        x, y, z = el[0], el[1], el[2]
+                        board[x][y][z] = 'X'
+                if sp_O != ['']:
+                    for el in sp_O:
+                        el = list(map(int, list(el)))
+                        x, y, z = el[0], el[1], el[2]
+                        board[x][y][z] = 'O'
+                else:
+                    sp_O = []
                 last_move = 'rotate'
                 if coords[1] == 0:
                     last_move = 'cell'
@@ -156,7 +182,7 @@ def main_func():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == pygame.BUTTON_LEFT:
                     # Обработка нажатия мыши
-                    handle_mouse_click(pygame.mouse.get_pos(), get_players())
+                    handle_mouse_click(pygame.mouse.get_pos())
                 elif event.button == 4:
                     scroll_up()
                 elif event.button == 5:

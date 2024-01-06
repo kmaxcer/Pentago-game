@@ -1,10 +1,10 @@
-import copy
 import time
 import pygame
 from pygame.locals import *
 import random
 import sys
 import sqlite3
+from button_class import ImageButton
 
 pygame.init()
 conn = sqlite3.connect('database.sqlite')
@@ -30,6 +30,12 @@ GRID_SIZE = 3
 GRID_PADDING = 10
 CELL_PADDING = 20
 last_move = 'rotate'
+arrow_img = pygame.image.load("arrow.png")
+black_sphere = pygame.image.load("sphere-black.png")
+white_sphere = pygame.image.load("sphere-white.png")
+background_image = pygame.image.load("2players_game.png")
+button_before = pygame.image.load("circle_before.png")
+button_after = pygame.image.load("circle_after.png")
 button_size = 100
 button_positions = [
     (50, 150),
@@ -43,20 +49,18 @@ button_positions = [
 ]
 button_radius = button_size // 2
 for i in range(8):
-    position = button_positions[i]
+    x, y = button_positions[i]
+    x -= 50
+    y -= 50
     if i >= 4:
         i += 1
     if i % 2 == 0:
-        clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
+        clockwise_button = ImageButton(x, y, 100, 100, '', "circle_before.png", "circle_after.png")
         clockwise_buttons.append(clockwise_button)
     else:
-        counter_clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
+        counter_clockwise_button = ImageButton(x, y, 100, 100, '', "circle_before.png", "circle_after.png")
         counter_clockwise_buttons.append(counter_clockwise_button)
     i -= 1
-arrow_img = pygame.image.load("arrow.png")
-black_sphere = pygame.image.load("sphere-black.png")
-white_sphere = pygame.image.load("sphere-white.png")
-background_image = pygame.image.load("2players_game.png")
 background_image = pygame.transform.scale(background_image, (800, 800))
 board = [[['', '', ''],
           ['', '', ''],
@@ -120,9 +124,9 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                     else:
                         pygame.draw.circle(screen, DARK_RED, (x, y), 30)
         for el in clockwise_buttons:
-            pygame.draw.circle(screen, button_color, el.center, button_radius)
+            el.draw(screen)
         for el in counter_clockwise_buttons:
-            pygame.draw.circle(screen, button_color, el.center, button_radius)
+            el.draw(screen)
         pygame.draw.line(screen, WHITE, (398, 100), (398, 700), 5)
         pygame.draw.line(screen, WHITE, (100, 398), (700, 398), 5)
         # Отрисовка кнопок
@@ -192,55 +196,81 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
 
         pygame.QUIT
 
-    def show_dialog(num):
+    def run_game(player_number):
         pygame.init()
-
-        screen_width = 800
-        screen_height = 800
-        screen = pygame.display.set_mode((screen_width, screen_height))
-        pygame.display.set_caption('Введите имя ' + str(num) + '-ого игрока')
-
         clock = pygame.time.Clock()
-        font = pygame.font.Font(None, 64)
+        screen = pygame.display.set_mode([800, 800])
+        base_font = pygame.font.Font("Robotocondensed Regular.ttf", 32)
+        user_text = ''
+        input_rect = pygame.Rect(330, 386, 140, 32)
+        color_active = pygame.Color('lightskyblue3')
+        color_passive = pygame.Color('grey')
+        color = color_passive
 
-        text = ""
-        input_active = True
+        button_rect = pygame.Rect(320, 436, 160, 48)
+        button_color_passive = pygame.Color('dodgerblue')
+        button_color_active = pygame.Color('lightskyblue2')
+        button_color = button_color_passive
 
-        done = False
-        while not done:
+        active = False
+
+        while True:
             for event in pygame.event.get():
-                if event.type == QUIT:
-                    done = True
+                if event.type == pygame.QUIT:
                     pygame.QUIT
-                    sys.exit()
-                elif event.type == KEYDOWN:
-                    if event.key == K_RETURN:
-                        return text
-                    elif event.key == K_BACKSPACE:
-                        if input_active:
-                            text = text[:-1]
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if input_rect.collidepoint(event.pos):
+                        active = True
                     else:
-                        if input_active:
-                            text += event.unicode
+                        active = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        user_text = user_text[:-1]
+                    elif event.key == pygame.K_RETURN:
+                        return user_text
+                    else:
+                        if active:
+                            user_text += event.unicode
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if button_rect.collidepoint(event.pos):
+                        return user_text
 
             screen.fill((255, 255, 255))
 
-            text_surf = font.render(text, True, (255, 0, 0))
-            screen.blit(text_surf, text_surf.get_rect(center=screen.get_rect().center))
-            font = pygame.font.Font(None, 36)
-            text_render = 'Введите имя ' + str(num) + '-ого игрока'
-            text_surface = font.render(text_render, True, (0, 0, 0))
-            text_rect_render = text_surface.get_rect(center=(400, 250))
+            if active:
+                color = color_active
+            else:
+                color = color_passive
 
-            screen.blit(text_surface, text_rect_render)
+            text_surface = base_font.render(user_text, True, (255, 255, 255))
+            input_rect.width = max(100, text_surface.get_width() + 10)
+            input_rect.x = screen.get_width() // 2 - input_rect.width // 2
+            input_rect.y = screen.get_height() // 2 - input_rect.height // 2
+
+            pygame.draw.rect(screen, color, input_rect)
+            screen.blit(text_surface, (input_rect.x + 5, input_rect.y + 5))
+
+            if button_rect.collidepoint(pygame.mouse.get_pos()):
+                button_color = button_color_active
+            else:
+                button_color = button_color_passive
+
+            pygame.draw.rect(screen, button_color, button_rect)
+            button_text = base_font.render("Отправить", True, (255, 255, 255))
+            screen.blit(button_text, (button_rect.x + 5, button_rect.y + 5))
+
+            title_text = base_font.render(f"Введите имя {player_number}-ого игрока", True, (0, 0, 0))
+            title_x = screen.get_width() // 2 - title_text.get_width() // 2
+            title_y = input_rect.y - 40
+            screen.blit(title_text, (title_x, title_y))
+
             pygame.display.flip()
-            clock.tick(30)
-
+            clock.tick(60)
         pygame.QUIT
 
     if not from_db:
-        first_player = show_dialog(1)
-        second_player = show_dialog(2)
+        first_player = run_game(1)
+        second_player = run_game(2)
         starting_player = random.choice([first_player, second_player])
         if starting_player != first_player:
             first_player, second_player = second_player, first_player
@@ -252,10 +282,12 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         result = list(cursor.execute(f"""SELECT id, player1, player2 FROM games WHERE id = {from_db}""").fetchall())
         id, first_player, second_player = result[0][0], result[0][1], result[0][2]
         cursor.execute(f"""DELETE FROM games WHERE id = {id}""")
-        print(id, first_player, second_player)
+        if current_player == 'X':
+            show_text('Первым начинает ' + first_player)
+        else:
+            show_text('Первым начинает ' + second_player)
 
     pygame.init()
-    print(current_player, last_move)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -332,16 +364,20 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                 else:
                     if last_move == 'cell':
                         for grid, clockwise_button in enumerate(clockwise_buttons):
-                            if clockwise_button.collidepoint(event.pos):
+                            if clockwise_button.handle_event(event):
                                 rotate_clockwise(grid)
                                 last_move = 'rotate'
                                 break
                         else:
                             for grid, counter_clockwise_button in enumerate(counter_clockwise_buttons):
-                                if counter_clockwise_button.collidepoint(event.pos):
+                                if counter_clockwise_button.handle_event(event):
                                     rotate_counter_clockwise(grid)
                                     last_move = 'rotate'
                                     break
+        for el in clockwise_buttons:
+            el.check_hover(pygame.mouse.get_pos())
+        for el in counter_clockwise_buttons:
+            el.check_hover(pygame.mouse.get_pos())
         draw_board()
     pygame.QUIT
 
