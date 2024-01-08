@@ -202,7 +202,7 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         screen = pygame.display.set_mode([800, 800])
         base_font = pygame.font.Font("Robotocondensed Regular.ttf", 32)
         user_text = ''
-        input_rect = pygame.Rect(330, 386, 140, 32)
+        input_rect = pygame.Rect(330, 386, 140, 48)
         color_active = pygame.Color('lightskyblue3')
         color_passive = pygame.Color('grey')
         color = color_passive
@@ -213,11 +213,12 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         button_color = button_color_passive
 
         active = False
-
-        while True:
+        running = True
+        while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.QUIT
+                    sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if input_rect.collidepoint(event.pos):
                         active = True
@@ -266,9 +267,11 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
 
             pygame.display.flip()
             clock.tick(60)
-        pygame.QUIT
+        pygame.quit()
 
     if not from_db:
+        conn = sqlite3.connect('database.sqlite')
+        cursor = conn.cursor()
         first_player = run_game(1)
         second_player = run_game(2)
         starting_player = random.choice([first_player, second_player])
@@ -276,9 +279,14 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
             first_player, second_player = second_player, first_player
         show_text('Первым начинает ' + starting_player)
 
-        result = cursor.execute("""SELECT * FROM games WHERE id > 0""").fetchall()
-        id = len(list(result)) + 1
+        result = cursor.execute("""SELECT id FROM games WHERE id > 0""").fetchall()
+        id = max(list(result))[0] + 1
+        print(id)
+        conn.commit()
+        cursor.close()
     else:
+        conn = sqlite3.connect('database.sqlite')
+        cursor = conn.cursor()
         result = list(cursor.execute(f"""SELECT id, player1, player2 FROM games WHERE id = {from_db}""").fetchall())
         id, first_player, second_player = result[0][0], result[0][1], result[0][2]
         cursor.execute(f"""DELETE FROM games WHERE id = {id}""")
@@ -286,30 +294,37 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
             show_text('Первым начинает ' + first_player)
         else:
             show_text('Первым начинает ' + second_player)
-
+        conn.commit()
+        cursor.close()
     pygame.init()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                flag = 1
-                if last_move == 'rotate':
-                    flag = 0
-                sp_X = []
-                sp_O = []
-                for grid in range(4):
-                    for row in range(3):
-                        for col in range(3):
-                            if board[grid][row][col] == 'X':
-                                sp_X.append(str(grid) + str(row) + str(col))
-                            elif board[grid][row][col] == 'O':
-                                sp_O.append(str(grid) + str(row) + str(col))
-                str_X = ','.join(sp_X)
-                str_O = ','.join(sp_O)
-                coords = str_X + ';' + str_O
-                data = (id, first_player, second_player, coords, flag, 'in_game')
-                data = str(data)
-                insert_query = "INSERT INTO games (id, player1, player2, coordinates, flag, result) VALUES " + data
-                cursor.execute(insert_query)
+                conn = sqlite3.connect('database.sqlite')
+                cursor = conn.cursor()
+                import dialog_after_closing
+                if dialog_after_closing.main_func():
+                    flag = 1
+                    if last_move == 'rotate':
+                        flag = 0
+                    sp_X = []
+                    sp_O = []
+                    for grid in range(4):
+                        for row in range(3):
+                            for col in range(3):
+                                if board[grid][row][col] == 'X':
+                                    sp_X.append(str(grid) + str(row) + str(col))
+                                elif board[grid][row][col] == 'O':
+                                    sp_O.append(str(grid) + str(row) + str(col))
+                    str_X = ','.join(sp_X)
+                    str_O = ','.join(sp_O)
+                    coords = str_X + ';' + str_O
+                    data = (id, first_player, second_player, coords, flag, 'in_game')
+                    data = str(data)
+                    insert_query = "INSERT INTO games (id, player1, player2, coordinates, flag, result) VALUES " + data
+                    cursor.execute(insert_query)
+                else:
+                    cursor.execute(f"""DELETE FROM games WHERE id = {id}""")
                 conn.commit()
                 cursor.close()
                 pygame.QUIT
@@ -324,6 +339,9 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                 data = (id, first_player, second_player, '', 1, winner)
                 data = str(data)
                 insert_query = "INSERT INTO games (id, player1, player2, coordinates, flag, result) VALUES " + data
+                print(insert_query)
+                conn = sqlite3.connect('database.sqlite')
+                cursor = conn.cursor()
                 cursor.execute(insert_query)
                 conn.commit()
                 cursor.close()

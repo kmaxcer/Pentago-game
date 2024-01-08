@@ -168,7 +168,7 @@ def main_func():
                     current_player = 'O'
                 else:
                     current_player = 'X'
-
+                print(player[0])
                 import main
                 main.main_func(board, last_move, current_player, player[0])
 
