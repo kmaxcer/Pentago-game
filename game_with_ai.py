@@ -3,6 +3,7 @@ import sys
 import time
 import random
 import pygame
+from button_class import ImageButton
 
 pygame.init()
 WIDTH = 800
@@ -45,13 +46,40 @@ board = [[['', '', ''],
          [['', '', ''],
           ['', '', ''],
           ['', '', '']]]
+button_size = 100
+button_positions = [
+    (50, 150),
+    (150, 50),
+    (650, 50),
+    (750, 150),
+    (50, 650),
+    (150, 750),
+    (650, 750),
+    (750, 650)
+]
+clockwise_buttons = []
+counter_clockwise_buttons = []
+button_radius = button_size // 2
+for i in range(8):
+    x, y = button_positions[i]
+    x -= 50
+    y -= 50
+    if i >= 4:
+        i += 1
+    if i % 2 == 0:
+        clockwise_button = ImageButton(x, y, 100, 100, '', "circle_before.png", "circle_after.png")
+        clockwise_buttons.append(clockwise_button)
+    else:
+        counter_clockwise_button = ImageButton(x, y, 100, 100, '', "circle_before.png", "circle_after.png")
+        counter_clockwise_buttons.append(counter_clockwise_button)
+    i -= 1
 
 user_move = 'X'
 ai_move = 'O'
 
 
 def main_func():
-    global max_depth, count
+    global max_depth, count, board
 
     def mirror_image(image, mirror_axis):
         # Отражение картинки по заданной оси (остановка = 0, вертикальная = 1, горизонтальная = 2)
@@ -94,32 +122,10 @@ def main_func():
                         pygame.draw.circle(screen, DARK_RED, (x, y), 30)
         pygame.draw.line(screen, WHITE, (398, 100), (398, 700), 5)
         pygame.draw.line(screen, WHITE, (100, 398), (700, 398), 5)
-        clockwise_buttons = []
-
-        counter_clockwise_buttons = []
-
-        button_positions = [
-            (50, 150),
-            (150, 50),
-            (650, 50),
-            (750, 150),
-            (50, 650),
-            (150, 750),
-            (650, 750),
-            (750, 650)
-        ]
-        # Отрисовка кнопок
-        for i in range(8):
-            position = button_positions[i]
-            if i >= 4:
-                i += 1
-            if i % 2 == 0:
-                clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
-                clockwise_buttons.append(clockwise_button)
-            else:
-                counter_clockwise_button = pygame.draw.circle(screen, button_color, position, button_radius)
-                counter_clockwise_buttons.append(counter_clockwise_button)
-            i -= 1
+        for el in clockwise_buttons:
+            el.draw(screen)
+        for el in counter_clockwise_buttons:
+            el.draw(screen)
         screen.blit(arrow_img, (100, 0))
         screen.blit(mirror_image(rotate_image(arrow_img, 90), 1), (0, 100))
         screen.blit(mirror_image(rotate_image(arrow_img, 180), 1), (600, 0))
@@ -129,6 +135,57 @@ def main_func():
         screen.blit(rotate_image(arrow_img, 180), (600, 700))
         screen.blit(rotate_image(mirror_image(arrow_img, 1), 90), (700, 600))
         pygame.display.flip()
+
+    def check_draw(board):
+        x_flag = False
+        o_flag = False
+        all_count = False
+        for grid in range(4):
+            for row in range(3):
+                for col in range(3):
+                    if board[grid][row][col] == '':
+                        all_count = False
+        sp = [board[0][0] + board[1][0]], [board[0][1] + board[1][1]], [board[0][2] + board[1][2]], [
+            board[2][0] + board[3][0]], [board[2][1] + board[3][1]], [board[2][2] + board[3][2]]
+        for i in range(2):
+            for j in range(2):
+                if sp[i][0][j] == sp[i + 1][0][j + 1] == sp[i + 2][0][j + 2] == sp[i + 3][0][j + 3] == sp[i + 4][0][
+                    j + 4] and sp[i][0][j] != '':
+                    if sp[i][0][j] == 'X':
+                        x_flag = True
+                    else:
+                        o_flag = True
+        # Проверка добавочной диагонали
+        for i in range(2):
+            for j in range(2):
+                if sp[i][0][j + 4] == sp[i + 1][0][j + 3] == sp[i + 2][0][j + 2] == sp[i + 3][0][j + 1] == sp[i + 4][0][
+                    j] and sp[i][0][j + 4] != '':
+                    if sp[i][0][j + 4] == 'X':
+                        x_flag = True
+                    else:
+                        o_flag = True
+        # Проверка горизонталей
+        for i in range(6):
+            for j in range(2):
+                if sp[i][0][j] == sp[i][0][j + 1] == sp[i][0][j + 2] == sp[i][0][j + 3] == sp[i][0][j + 4] and sp[i][0][
+                    j] != '':
+                    if [i][0][j] == 'X':
+                        x_flag = True
+                    else:
+                        o_flag = True
+        # Проверка вертикалей
+        for i in range(2):
+            for j in range(6):
+                if sp[i][0][j] == sp[i + 1][0][j] == sp[i + 2][0][j] == sp[i + 3][0][j] == sp[i + 4][0][j] and sp[i][0][
+                    j] != '':
+                    if sp[i][0][j] == 'X':
+                        x_flag = True
+                    else:
+                        o_flag = True
+        if all_count:
+            return True
+        elif x_flag == o_flag == True:
+            return True
 
     def check_win(board):
         # Проверка главной диагонали
@@ -212,6 +269,18 @@ def main_func():
                         count -= 5
         return count
 
+    def get_rotate(board):
+        for rotate in range(2):
+            for quot in range(4):
+                field = copy.deepcopy(board)
+                if rotate == 0:
+                    if check_win(rotate_clockwise(field, quot)[0]) == (True, 'O'):
+                        return (rotate, quot)
+                else:
+                    if check_win(rotate_counter_clockwise(field, quot)[0]) == (True, 'O'):
+                        return (rotate, quot)
+        return (random.choice([0, 1]), random.choice([0, 1, 2, 3]))
+
     def check_centers(board):
         count = 0
         flag = False
@@ -258,13 +327,13 @@ def main_func():
                     for col in range(3):
                         if field[grid][row][col] == '':
                             field[grid][row][col] = 'X'
-                            for quot in range(0, 4):  #
-                                for direct in range(2):  #
-                                    field_copy = copy.deepcopy(field)  #
-                                    if direct == 0:  #
-                                        rotate_clockwise(field, quot)  #
-                                    else:  #
-                                        rotate_counter_clockwise(field, quot)  #
+                            for quot in range(0, 4):
+                                for direct in range(2):
+                                    field_copy = copy.deepcopy(field)
+                                    if direct == 0:
+                                        rotate_clockwise(field, quot)
+                                    else:
+                                        rotate_counter_clockwise(field, quot)
                                     score = minimax(field, depth + 1, True, 2)
                                     best_score = min(best_score, score)
                                     beta = min(beta, best_score)
@@ -283,21 +352,21 @@ def main_func():
                 for col in range(3):
                     if field[grid][row][col] == '':
                         field[grid][row][col] = 'O'
-                        for quot in range(0, 4):  #
-                            for direct in range(2):  #
-                                field_copy = copy.deepcopy(field)  #
-                                if direct == 0:  #
-                                    rotate_clockwise(field, quot)  #
-                                else:  #
-                                    rotate_counter_clockwise(field, quot)  #
+                        for quot in range(0, 4):
+                            for direct in range(2):
+                                field_copy = copy.deepcopy(field)
+                                if direct == 0:
+                                    rotate_clockwise(field, quot)
+                                else:
+                                    rotate_counter_clockwise(field, quot)
                                 score = minimax(field, 0, False, 2)
+                                move = (grid, row, col, quot, direct)
                                 if score > best_score:
                                     best_score = score
-                                    move = (grid, row, col, quot, direct)
                                     sp_of_moves = [move]
                                 if score == best_score:
                                     sp_of_moves.append(move)
-                                field = copy.deepcopy(field_copy)  #
+                                field = copy.deepcopy(field_copy)
                         field[grid][row][col] = ''
         return sp_of_moves
 
@@ -319,8 +388,6 @@ def main_func():
 
         time.sleep(3)
 
-        pygame.QUIT
-
     def rotate_clockwise(board, grid):
         copied = copy.deepcopy(board)
         board[grid] = [list(row) for row in zip(*board[grid][::-1])]
@@ -335,15 +402,22 @@ def main_func():
 
     rotate_flag = False
     cell_flag = False
+    running = True
     draw_board()
-    while True:
+    while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                running = False
                 pygame.QUIT
-                sys.exit()
             result = check_win(board)
             end_flag, winner = result[0], result[1]
             if end_flag:
+                if check_draw(board):
+                    draw_board()
+                    time.sleep(3)
+                    message = f"Победила Дружба!"
+                    show_text(message)
+                    sys.exit()
                 if winner == 'X':
                     winner = 'Человек'
                 else:
@@ -352,7 +426,7 @@ def main_func():
                 draw_board()
                 time.sleep(3)
                 show_text(message)
-                pygame.QUIT
+                running = False
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if not cell_flag:
@@ -380,21 +454,28 @@ def main_func():
                             cell_flag = True
                 elif not rotate_flag:
                     for grid, clockwise_button in enumerate(clockwise_buttons):
-                        if clockwise_button.collidepoint(event.pos):
+                        if clockwise_button.handle_event(event):
                             rotate_clockwise(board, grid)
-                            rotate_flag = True
+                            last_move = 'rotate'
                             count += 1
                             break
                     else:
                         for grid, counter_clockwise_button in enumerate(counter_clockwise_buttons):
-                            if counter_clockwise_button.collidepoint(event.pos):
+                            if counter_clockwise_button.handle_event(event):
                                 rotate_counter_clockwise(board, grid)
-                                rotate_flag = True
+                                last_move = 'rotate'
                                 count += 1
                                 break
+                    rotate_flag = True
                 result = check_win(board)
                 end_flag, winner = result[0], result[1]
                 if end_flag:
+                    if check_draw(board):
+                        draw_board()
+                        time.sleep(3)
+                        message = f"Победила Дружба!"
+                        show_text(message)
+                        sys.exit()
                     if winner == 'X':
                         winner = 'Человек'
                     else:
@@ -403,7 +484,7 @@ def main_func():
                     draw_board()
                     time.sleep(3)
                     show_text(message)
-                    pygame.QUIT
+                    running = False
                     sys.exit()
                 draw_board()
                 if count == 5:
@@ -416,12 +497,17 @@ def main_func():
                     board[int(grid)][int(row)][int(col)] = 'O'
                     draw_board()
                     time.sleep(1.5)
-                    if direct == 0:  #
-                        rotate_clockwise(board, quot)  #
-                    else:  #
-                        rotate_counter_clockwise(board, quot)
-                    cell_flag, rotate_flag = False, False
-                    draw_board()
+                    res = get_rotate(board)
+                    if res[0] == 0:
+                        board = rotate_clockwise(board, res[1])[0]
+                    else:
+                        board = rotate_counter_clockwise(board, res[1])[0]
+                    rotate_flag, cell_flag = False, False
+        for el in clockwise_buttons:
+            el.check_hover(pygame.mouse.get_pos())
+        for el in counter_clockwise_buttons:
+            el.check_hover(pygame.mouse.get_pos())
+        draw_board()
 
 
 if __name__ == '__main__':

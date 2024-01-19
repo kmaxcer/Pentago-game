@@ -1,11 +1,11 @@
 import time
 import pygame
-from pygame.locals import *
 import random
 import sys
 import sqlite3
 from button_class import ImageButton
 
+# Инициализация
 pygame.init()
 conn = sqlite3.connect('database.sqlite')
 cursor = conn.cursor()
@@ -77,6 +77,7 @@ board = [[['', '', ''],
 current_player = 'X'
 
 
+# Главная функция
 def main_func(a=board, b=last_move, c=current_player, d=0):
     global clockwise_buttons, counter_clockwise_buttons
     board = a
@@ -84,16 +85,19 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
     current_player = c
     from_db = d
 
+    # Отражение изображения
     def mirror_image(image, mirror_axis):
         # Отражение картинки по заданной оси (остановка = 0, вертикальная = 1, горизонтальная = 2)
         mirrored_image = pygame.transform.flip(image, False, mirror_axis)
         return mirrored_image
 
+    # Поворот изображения
     def rotate_image(image, angle):
         # Поворот картинки на заданный угол (в градусах)
         rotated_image = pygame.transform.rotate(image, angle)
         return rotated_image
 
+    # Нарисовать доску
     def draw_board():
         global clockwise_buttons, counter_clockwise_buttons
         screen.fill(WHITE)
@@ -101,9 +105,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         # Отрисовка поля
         pygame.draw.rect(screen, field_color, ((100, 100), (600, 600)))
         # Размер и радиус кнопок
-        button_size = 100
-        button_radius = button_size // 2
-
         for grid in range(4):
             for row in range(3):
                 for col in range(3):
@@ -140,16 +141,17 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         screen.blit(rotate_image(mirror_image(arrow_img, 1), 90), (700, 600))
         pygame.display.flip()
 
+    # Повернуть четверть по часовой
     def rotate_clockwise(grid):
         board[grid] = [list(row)[::-1] for row in zip(*board[grid])]
         board[grid] = [list(row)[::-1] for row in zip(*board[grid])]
         board[grid] = [list(row)[::-1] for row in zip(*board[grid])]
 
+    # Повернуть четверть против часовой
     def rotate_counter_clockwise(grid):
         board[grid] = [list(row) for row in zip(*board[grid][::-1])]
 
-    running = True
-
+    # Проверка победителя
     def check_winner(board):
         # Проверка главной диагонали
         sp = [board[0][0] + board[1][0]], [board[0][1] + board[1][1]], [board[0][2] + board[1][2]], [
@@ -179,6 +181,7 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                     return (True, sp[i][0][j])
         return (False, '')
 
+    # Показать текст в окне
     def show_text(text):
         pygame.init()
         screen = pygame.display.set_mode((800, 800))
@@ -194,8 +197,58 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
 
         time.sleep(3)
 
-        pygame.QUIT
+    def check_draw(board):
+        x_flag = False
+        o_flag = False
+        all_count = False
+        for grid in range(4):
+            for row in range(3):
+                for col in range(3):
+                    if board[grid][row][col] == '':
+                        all_count = False
+        sp = [board[0][0] + board[1][0]], [board[0][1] + board[1][1]], [board[0][2] + board[1][2]], [
+            board[2][0] + board[3][0]], [board[2][1] + board[3][1]], [board[2][2] + board[3][2]]
+        for i in range(2):
+            for j in range(2):
+                if sp[i][0][j] == sp[i + 1][0][j + 1] == sp[i + 2][0][j + 2] == sp[i + 3][0][j + 3] == sp[i + 4][0][
+                    j + 4] and sp[i][0][j] != '':
+                    if sp[i][0][j] == 'X':
+                        x_flag = True
+                    else:
+                        o_flag = True
+        # Проверка добавочной диагонали
+        for i in range(2):
+            for j in range(2):
+                if sp[i][0][j + 4] == sp[i + 1][0][j + 3] == sp[i + 2][0][j + 2] == sp[i + 3][0][j + 1] == sp[i + 4][0][
+                    j] and sp[i][0][j + 4] != '':
+                    if sp[i][0][j + 4] == 'X':
+                        x_flag = True
+                    else:
+                        o_flag = True
+        # Проверка горизонталей
+        for i in range(6):
+            for j in range(2):
+                if sp[i][0][j] == sp[i][0][j + 1] == sp[i][0][j + 2] == sp[i][0][j + 3] == sp[i][0][j + 4] and sp[i][0][
+                    j] != '':
+                    if [i][0][j] == 'X':
+                        x_flag = True
+                    else:
+                        o_flag = True
+        # Проверка вертикалей
+        for i in range(2):
+            for j in range(6):
+                if sp[i][0][j] == sp[i + 1][0][j] == sp[i + 2][0][j] == sp[i + 3][0][j] == sp[i + 4][0][j] and sp[i][0][
+                    j] != '':
+                    if sp[i][0][j] == 'X':
+                        x_flag = True
+                    else:
+                        o_flag = True
+        if all_count:
+            return True
+        elif x_flag == o_flag == True:
+            return True
 
+    # Запустить диалоговое окно
     def run_game(player_number):
         pygame.init()
         clock = pygame.time.Clock()
@@ -205,7 +258,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         input_rect = pygame.Rect(330, 386, 140, 48)
         color_active = pygame.Color('lightskyblue3')
         color_passive = pygame.Color('grey')
-        color = color_passive
 
         button_rect = pygame.Rect(320, 436, 160, 48)
         button_color_passive = pygame.Color('dodgerblue')
@@ -217,7 +269,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.QUIT
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if input_rect.collidepoint(event.pos):
@@ -281,7 +332,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
 
         result = cursor.execute("""SELECT id FROM games WHERE id > 0""").fetchall()
         id = max(list(result))[0] + 1
-        print(id)
         conn.commit()
         cursor.close()
     else:
@@ -296,6 +346,7 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
             show_text('Первым начинает ' + second_player)
         conn.commit()
         cursor.close()
+    # Главный игровой цикл
     pygame.init()
     while True:
         for event in pygame.event.get():
@@ -327,11 +378,16 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                     cursor.execute(f"""DELETE FROM games WHERE id = {id}""")
                 conn.commit()
                 cursor.close()
-                pygame.QUIT
                 sys.exit()
             result = check_winner(board)
             end_flag, winner = result[0], result[1]
             if end_flag:
+                if check_draw(board):
+                    draw_board()
+                    time.sleep(3)
+                    message = f"Победила Дружба!"
+                    show_text(message)
+                    sys.exit()
                 if winner == 'X':
                     winner = first_player
                 else:
@@ -339,7 +395,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                 data = (id, first_player, second_player, '', 1, winner)
                 data = str(data)
                 insert_query = "INSERT INTO games (id, player1, player2, coordinates, flag, result) VALUES " + data
-                print(insert_query)
                 conn = sqlite3.connect('database.sqlite')
                 cursor = conn.cursor()
                 cursor.execute(insert_query)
@@ -349,7 +404,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                 time.sleep(3)
                 message = f"Игрок {winner} победил!"
                 show_text(message)
-                pygame.QUIT
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if last_move == 'rotate':
@@ -397,7 +451,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         for el in counter_clockwise_buttons:
             el.check_hover(pygame.mouse.get_pos())
         draw_board()
-    pygame.QUIT
 
 
 if __name__ == '__main__':

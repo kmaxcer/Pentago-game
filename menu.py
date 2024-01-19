@@ -5,11 +5,13 @@ window_width = 800
 window_height = 800
 background_color = (255, 255, 255)
 LIGHT_GREY = (200, 200, 200)
+
 background_image = pygame.image.load("background.png")
 menu_button = pygame.image.load("menu_button.png")
 menu_pic = pygame.image.load("menu_pic.png")
 points = pygame.image.load("about_game.png")
-background_image = pygame.transform.scale(background_image, (800, 800))
+
+background_image = pygame.transform.scale(background_image, (window_width, window_height))
 pygame.init()
 
 
@@ -18,16 +20,16 @@ def draw_menu(window):
     global button_rect, button_rect_1, button_rect_2, button_rect_3, menu_button, menu_pic, points, button_menu_rect
     # Очистите экран и установите цвет фона
     window.fill(background_color)
-    button_width, button_height = 531 - 266, 172 - 151
+    button_width, button_height = 265, 21
     button_x, button_y = 266, 150
     button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
-    button_width_1, button_height_1 = 665 - 131, 226 - 201
+    button_width_1, button_height_1 = 534, 25
     button_x_1, button_y_1 = 131, 200
     button_rect_1 = pygame.Rect(button_x_1, button_y_1, button_width_1, button_height_1)
-    button_width_2, button_height_2 = 531 - 265, 274 - 251
+    button_width_2, button_height_2 = 266, 23
     button_x_2, button_y_2 = 265, 250
     button_rect_2 = pygame.Rect(button_x_2, button_y_2, button_width_2, button_height_2)
-    button_width_3, button_height_3 = 639 - 185, 321 - 301
+    button_width_3, button_height_3 = 454, 20
     button_x_3, button_y_3 = 185, 300
     button_rect_3 = pygame.Rect(button_x_3, button_y_3, button_width_3, button_height_3)
     button_menu_width, button_menu_height = 40, 40
@@ -74,6 +76,7 @@ def start_new_game():
     main.main_func()
 
 
+# Проверка на нажатие текста
 def is_text_clicked(text_rect):
     mouse_pos = pygame.mouse.get_pos()
     if text_rect.collidepoint(mouse_pos):
@@ -87,16 +90,19 @@ def show_old_games():
     nonfinished_games_show.main_func()
 
 
+# Показать лидеров
 def show_leaders():
     import show_leaders
     show_leaders.main_func()
 
 
+# Игра с ИИ
 def game_with_ai():
     import game_with_ai
     game_with_ai.main_func()
 
 
+# Показать информацию об игре
 def show_about():
     import about_game
     about_game.main_func()
@@ -120,14 +126,13 @@ def main():
             if event.type == QUIT:
                 running = False
             elif event.type == KEYDOWN:
-                if event.key == K_1:
-                    # Нажата клавиша "1" - начать новую игру
+                if event.key == K_1:  # Нажата клавиша "1" - начать новую игру
                     start_new_game()
-                if event.key == K_2:
+                if event.key == K_2:  # Нажата клавиша "2" - посмотреть старые игры
                     show_old_games()
-                if event.key == K_3:
+                if event.key == K_3:  # Нажата клавиша "3" - показать лидеров
                     show_leaders()
-                if event.key == K_4:
+                if event.key == K_4:  # Нажата клавиша "4" - начать игру с ИИ
                     game_with_ai()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -141,9 +146,6 @@ def main():
                         game_with_ai()
                     if button_menu_rect.collidepoint(event.pos):
                         show_about()
-
-    # Завершение программы
-    pygame.quit()
 
 
 if __name__ == "__main__":
