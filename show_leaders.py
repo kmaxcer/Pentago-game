@@ -11,7 +11,6 @@ GREY = (200, 200, 200)
 # Создание окна Pygame
 width, height = 800, 800
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Таблица игроков")
 
 conn = sqlite3.connect('database.sqlite')
 cursor = conn.cursor()
@@ -61,6 +60,7 @@ for i, (player, wins) in enumerate(sorted_results, 1):
 
 
 def main_func():
+    pygame.display.set_caption("Таблица игроков")
     global sp, roll_count
     roll_count = 0
 
@@ -102,7 +102,7 @@ def main_func():
             for j, value in enumerate(player[:5]):
                 pygame.draw.rect(screen, GREY, (x_offset, y_offset, column_widths[j], cell_height), 1)
                 pygame.draw.rect(screen, GREY, (x_offset + 1, y_offset + 1, column_widths[j] - 2, cell_height - 2))
-                font = pygame.font.Font("Robotocondensed Regular.ttf", 60)
+                font = pygame.font.Font("Robotocondensed Regular.ttf", 30)
                 text = font.render(str(value), True, (0, 0, 0))
                 const = 10
                 if j == 3:
@@ -185,7 +185,6 @@ def main_func():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-                pygame.QUIT
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4:
                     scroll_up()
@@ -199,7 +198,7 @@ def main_func():
         display_table(players)
 
     # Завершение работы Pygame
-    pygame.QUIT
+    pygame.display.set_caption("Меню Пентаго")
 
 
 if __name__ == '__main__':

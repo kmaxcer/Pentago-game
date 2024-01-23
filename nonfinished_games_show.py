@@ -11,10 +11,10 @@ GREY = (200, 200, 200)
 # Создание окна Pygame
 width, height = 800, 800
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Таблица игроков")
 
 
 def main_func():
+    pygame.display.set_caption("Таблица игроков")
     global sp, roll_count
     roll_count = 0
 
@@ -195,7 +195,7 @@ def main_func():
         display_table(players)
 
     # Завершение работы Pygame
-    pygame.QUIT
+    pygame.display.set_caption("Меню Пентаго")
 
 
 if __name__ == '__main__':

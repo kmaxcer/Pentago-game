@@ -169,7 +169,7 @@ def main_func():
             for j in range(2):
                 if sp[i][0][j] == sp[i][0][j + 1] == sp[i][0][j + 2] == sp[i][0][j + 3] == sp[i][0][j + 4] and sp[i][0][
                     j] != '':
-                    if [i][0][j] == 'X':
+                    if sp[i][0][j] == 'X':
                         x_flag = True
                     else:
                         o_flag = True

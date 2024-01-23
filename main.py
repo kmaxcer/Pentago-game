@@ -230,7 +230,7 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
             for j in range(2):
                 if sp[i][0][j] == sp[i][0][j + 1] == sp[i][0][j + 2] == sp[i][0][j + 3] == sp[i][0][j + 4] and sp[i][0][
                     j] != '':
-                    if [i][0][j] == 'X':
+                    if sp[i][0][j] == 'X':
                         x_flag = True
                     else:
                         o_flag = True
@@ -348,7 +348,8 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         cursor.close()
     # Главный игровой цикл
     pygame.init()
-    while True:
+    running = True
+    while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 conn = sqlite3.connect('database.sqlite')
@@ -378,7 +379,7 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                     cursor.execute(f"""DELETE FROM games WHERE id = {id}""")
                 conn.commit()
                 cursor.close()
-                sys.exit()
+                running = False
             result = check_winner(board)
             end_flag, winner = result[0], result[1]
             if end_flag:
@@ -387,7 +388,6 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
                     time.sleep(3)
                     message = f"Победила Дружба!"
                     show_text(message)
-                    sys.exit()
                 if winner == 'X':
                     winner = first_player
                 else:
@@ -451,6 +451,7 @@ def main_func(a=board, b=last_move, c=current_player, d=0):
         for el in counter_clockwise_buttons:
             el.check_hover(pygame.mouse.get_pos())
         draw_board()
+    pygame.display.set_caption("Меню Пентаго")
 
 
 if __name__ == '__main__':
